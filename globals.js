@@ -1,5 +1,8 @@
 
-var gameGlobals = {};
+var gg = {
+
+    
+};
 
 // gameGlobals.camera =  scene, renderer;
 // var mesh;

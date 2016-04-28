@@ -1,14 +1,14 @@
 function preload(){
-  gameGlobals.sound = loadSound('assets/bass1.mp3');
+  gg.sound = loadSound('assets/bass1.mp3');
 }
 
 function setup(){
     var cnv = createCanvas(100,100);
     // cnv.mouseClicked(togglePlay);
-    gameGlobals.fft = new p5.FFT();
+    gg.fft = new p5.FFT();
     var mic = new p5.AudioIn();
-    // gameGlobals.fft.setInput(mic);
-    gameGlobals.sound.amp(0.2);
+    // gg.fft.setInput(mic);
+    gg.sound.amp(0.2);
     // togglePlay();
 
     // start the Audio Input.
@@ -17,39 +17,12 @@ function setup(){
     mic.connect();
 }
 
-function draw(){
-    background(0);
-
-    var spectrum = gameGlobals.fft.analyze(); 
-    noStroke();
-    fill(0,255,0); // spectrum is green
-    for (var i = 0; i< spectrum.length; i++){
-        var x = map(i, 0, spectrum.length, 0, width);
-        var h = -height + map(spectrum[i], 0, 255, height, 0);
-        rect(x, height, width / spectrum.length, h )
-    }
-
-    var waveform = gameGlobals.fft.waveform();
-    noFill();
-    beginShape();
-    stroke(255,0,0); // waveform is red
-    strokeWeight(1);
-    for (var i = 0; i< waveform.length; i++){
-        var x = map(i, 0, waveform.length, 0, width);
-        var y = map( waveform[i], -1, 1, 0, height);
-        vertex(x,y);
-    }
-    endShape();
-
-    text('click to play/pause', 4, 10);
-}
-
-// fade gameGlobals.sound if mouse is over canvas
+// fade gg.sound if mouse is over canvas
 function togglePlay() {
-  if (gameGlobals.sound.isPlaying()) {
-    gameGlobals.sound.pause();
+  if (gg.sound.isPlaying()) {
+    gg.sound.pause();
   } else {
-    gameGlobals.sound.loop();
+    gg.sound.loop();
   }
 }
 
@@ -57,59 +30,118 @@ init();
 animate();
 function init() {
 
-    gameGlobals.camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-    gameGlobals.camera.position.z = 400;
-    gameGlobals.scene = new THREE.Scene();
+    gg.camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+    gg.camera.position.z = 400;
+    gg.scene = new THREE.Scene();
 
-    gameGlobals.mesh = new THREE.Mesh( new THREE.DodecahedronGeometry( 2 , 2),  new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
-    // gameGlobals.mesh = new THREE.Mesh( new THREE.DodecahedronGeometry( 2 , 2), new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide } ) );
-    gameGlobals.mesh.scale.set(50,50,50);
-    gameGlobals.mesh.position.x = -100;
-    gameGlobals.scene.add( gameGlobals.mesh );
+    gg.mesh = new THREE.Mesh( new THREE.DodecahedronGeometry( 2 , 2),  new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
+    // gg.mesh = new THREE.Mesh( new THREE.DodecahedronGeometry( 2 , 2), new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide } ) );
+    gg.mesh.scale.set(50,50,50);
+    gg.mesh.position.x = -100;
+    // gg.scene.add( gg.mesh );
 
-    gameGlobals.objects = []
+    gg.objects = []
     for(var i = 0; i < 1; i++)
     {
         var object = new THREE.Mesh( new THREE.DodecahedronGeometry( 2 , 2), new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide } ) );
         object.position.x = 100;
         object.scale.set(50,50,50);
-        gameGlobals.scene.add(object);
-        // gameGlobals.push(object);
+        object.geometry.computeVertexNormals();
+        // gg.scene.add(object);
+        // gg.push(object);
     }
 
     var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
     directionalLight.position.set( 0, 1000, 0 );
-    gameGlobals.scene.add( directionalLight );
+    gg.scene.add( directionalLight );
     
     var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
-    gameGlobals.scene.add( light );
+    gg.scene.add( light );
 
-    gameGlobals.renderer = new THREE.WebGLRenderer();
-    gameGlobals.renderer.setPixelRatio( window.devicePixelRatio );
-    gameGlobals.renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( gameGlobals.renderer.domElement );
+    gg.renderer = new THREE.WebGLRenderer();
+    gg.renderer.setPixelRatio( window.devicePixelRatio );
+    gg.renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( gg.renderer.domElement );
+
+    gg.anim = generators.generateSpine({
+            spineName : "spineboy",
+            dir : "spine-threejs/example/data/",
+            mixes: [
+                    {from: 'walk', to: 'jump', value: 0.2},
+                    {from: 'run', to: 'jump', value: 0.2},
+                    {from: 'jump', to: 'run', value: 0.2}
+                ],
+            proceduralAnims : {
+                    walk :
+                        {
+                            head: function()
+                                {
+
+                                },
+                        },
+                },
+            startAnimation: "walk",
+        });
+
+    gg.anim.position.y = -200;
+    gg.anim.position.z = -150;
+    gg.scene.add(gg.anim);
+
+    var onProgress = function ( xhr ) {
+        if ( xhr.lengthComputable ) {
+            var percentComplete = xhr.loaded / xhr.total * 100;
+            console.log( Math.round(percentComplete, 2) + '% downloaded' );
+        }
+    };
+    var onError = function ( xhr ) { };
+    THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader() );
+    var mtlLoader = new THREE.MTLLoader();
+    mtlLoader.setBaseUrl( 'assets/obj/' );
+    mtlLoader.setPath( 'assets/obj/' );
+    mtlLoader.load( 'model_mesh.obj.mtl', function( materials ) {
+        materials.preload();
+        var objLoader = new THREE.OBJLoader();
+        objLoader.setMaterials( materials );
+        objLoader.setPath( 'assets/obj/' );
+        objLoader.load( 'model_mesh.obj', function ( object ) {
+            // object.position.y = - 95;
+            // gg.scene.add( object );
+            object.scale.set(500,500,500);
+            gg.faceObj = object;
+        }, onProgress, onError );
+    });
+    
+        // anim.state.setAnimationByName(0, 'jump', false);
+        // anim.state.addAnimationByName(0, 'run', true, 0);
 
     window.addEventListener( 'resize', onWindowResize, false );
+    document.addEventListener("mousedown", function(){},false);
 }
 function onWindowResize() {
-    gameGlobals.camera.aspect = window.innerWidth / window.innerHeight;
-    gameGlobals.camera.updateProjectionMatrix();
-    gameGlobals.renderer.setSize( window.innerWidth, window.innerHeight );
+    gg.camera.aspect = window.innerWidth / window.innerHeight;
+    gg.camera.updateProjectionMatrix();
+    gg.renderer.setSize( window.innerWidth, window.innerHeight );
 }
+
+var lastTime = Date.now();
 function animate() {
     requestAnimationFrame( animate );
     var binSums = [];
     var binCount = [];
     var binAverages = [];
-    var numBins = 3;
+    var numBins = 5;
     for(var i = 0; i < numBins; i++)
     {
         binSums.push(0);
         binCount.push(0);
     }
-    if(gameGlobals.fft != null)
+
+    var t = Date.now();
+    gg.anim.update((t - lastTime) / 1000);
+    lastTime = t;
+    if(gg.fft != null)
     {
-        var spectrum = gameGlobals.fft.analyze(); 
+        var spectrum = gg.fft.analyze(); 
         for (var i = 0; i< spectrum.length; i++){
             var bin = Math.floor(i/spectrum.length*3);
             binSums[bin] += spectrum[i];
@@ -121,12 +153,20 @@ function animate() {
         {
             bins.push(binSums[i]/binCount[i]);
         }
-        gameGlobals.mesh.rotation.x = bins[0]/255 * 3;
-        gameGlobals.mesh.position.y = gameGlobals.fft.getEnergy(100);
+        // gg.mesh.rotation.y = Math.PI/2;
+        gg.mesh.rotation.x = bins[0]/255 * 3;
+        gg.mesh.position.y = gg.fft.getEnergy(100);
+        gg.bins = bins;
     }
-    for(var object of gameGlobals.objects)
+    for(var object of gg.objects)
     {
         // object.update();
     }
-    gameGlobals.renderer.render( gameGlobals.scene, gameGlobals.camera );
+    if(gg.faceObj)
+    {
+        gg.faceObj.position.y = -10;
+        gg.faceObj.rotation.x = -.3;
+        gg.faceObj.rotation.y += .1;
+    }
+    gg.renderer.render( gg.scene, gg.camera );
 }
