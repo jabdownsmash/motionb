@@ -13,8 +13,8 @@ function setup(){
 
     // start the Audio Input.
     // By default, it does not .connect() (to the computer speakers)
-    mic.start();
-    mic.connect();
+    // mic.start();
+    // mic.connect();
 }
 
 // fade gg.sound if mouse is over canvas
@@ -34,6 +34,49 @@ function init() {
     gg.camera.position.z = 400;
     gg.scene = new THREE.Scene();
 
+    var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+    directionalLight.position.set( 0, 1000, 0 );
+    gg.scene.add( directionalLight );
+    
+    var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
+    gg.scene.add( light );
+    // gg.scene.fog = new THREE.FogExp2( 0x4459cc, 0.0035); //p1
+
+    gg.renderer = new THREE.WebGLRenderer();
+    gg.renderer.setPixelRatio( window.devicePixelRatio );
+    gg.renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( gg.renderer.domElement );
+
+    var spineData = {
+            spineName : "spineboy",
+            dir : "spine-threejs/example/data/",
+            mixes: [
+                    {from: 'walk', to: 'jump', value: 0.2},
+                    {from: 'run', to: 'jump', value: 0.2},
+                    {from: 'jump', to: 'run', value: 0.2}
+                ],
+            proceduralAnims : {
+                    walk :
+                        {
+                            head:
+                                {
+                                    mirror : 1,
+                                    transform : function()
+                                    {
+
+                                    },
+                                },
+                            front_shin:
+                                {
+                                    mirror : 1,
+                                    
+                                }
+                        },
+                },
+            startAnimation: "walk",
+        };
+
+
     gg.mesh = new THREE.Mesh( new THREE.DodecahedronGeometry( 2 , 2),  new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
     // gg.mesh = new THREE.Mesh( new THREE.DodecahedronGeometry( 2 , 2), new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide } ) );
     gg.mesh.scale.set(50,50,50);
@@ -49,43 +92,17 @@ function init() {
         object.geometry.computeVertexNormals();
         // gg.scene.add(object);
         // gg.push(object);
+
+        gg.obj = new MotionObject(new THREE.DodecahedronGeometry( 2 , 2), 0xcc4459);
+        gg.obj.obj.geometry.computeVertexNormals();
+        gg.scene.add(gg.obj.obj);
     }
 
-    var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-    directionalLight.position.set( 0, 1000, 0 );
-    gg.scene.add( directionalLight );
-    
-    var light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );
-    gg.scene.add( light );
-
-    gg.renderer = new THREE.WebGLRenderer();
-    gg.renderer.setPixelRatio( window.devicePixelRatio );
-    gg.renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( gg.renderer.domElement );
-
-    gg.anim = generators.generateSpine({
-            spineName : "spineboy",
-            dir : "spine-threejs/example/data/",
-            mixes: [
-                    {from: 'walk', to: 'jump', value: 0.2},
-                    {from: 'run', to: 'jump', value: 0.2},
-                    {from: 'jump', to: 'run', value: 0.2}
-                ],
-            proceduralAnims : {
-                    walk :
-                        {
-                            head: function()
-                                {
-
-                                },
-                        },
-                },
-            startAnimation: "walk",
-        });
+    gg.anim = generators.generateSpine(spineData,false);
 
     gg.anim.position.y = -200;
     gg.anim.position.z = -150;
-    gg.scene.add(gg.anim);
+    // gg.scene.add(gg.anim);
 
     var onProgress = function ( xhr ) {
         if ( xhr.lengthComputable ) {
@@ -137,7 +154,16 @@ function animate() {
     }
 
     var t = Date.now();
-    gg.anim.update((t - lastTime) / 1000);
+        
+    if(gg.anim.obj2 != null)
+    {
+        gg.anim.update((t - lastTime) / 1000);
+        gg.anim.obj2.update((t - lastTime) / 1000);
+
+        // animationTime += delta;
+        // gg.anim.state.apply(gg.anim.skeleton, t/1000, true); //* true is for loop
+        // gg.anim.skeleton.updateWorldTransform();
+    }
     lastTime = t;
     if(gg.fft != null)
     {
@@ -167,6 +193,7 @@ function animate() {
         gg.faceObj.position.y = -10;
         gg.faceObj.rotation.x = -.3;
         gg.faceObj.rotation.y += .1;
+        gg.obj.obj.rotation.y += .01;
     }
     gg.renderer.render( gg.scene, gg.camera );
 }

@@ -1,7 +1,10 @@
 
 MotionObject = function(geom,color)
 {
-    this.material = new THREE.MeshBasicMaterial( { color: color, side: THREE.DoubleSide } ); //p1
+    this.material = new THREE.MeshPhongMaterial( { color: color, specular: 0x009900, shininess: 0 } );
+    // this.material = new THREE.MeshPhongMaterial( { color: color, specular: 0x009900, shininess: 0, shading: THREE.FlatShading } );
+    // this.material = new THREE.MeshLambertMaterial( { color: color, side: THREE.DoubleSide } ); //p1
+    // this.material = new THREE.MeshBasicMaterial( { color: color, side: THREE.DoubleSide } ); //p1
     // this.material = new THREE.MeshBasicMaterial( { color: 0x3FB8AF } ); //p1
     var object = new THREE.Mesh( geom, this.material );
     // var object = new THREE.Mesh( geom, new THREE.MeshNormalMaterial() );
@@ -15,7 +18,7 @@ MotionObject = function(geom,color)
     this.addOriginalVertices();
     geom.uvsNeedUpdate = true;
     this.obj.scale.set(50,50,50);
-    var self = this;
+    // var self = this;
     // this.pulse = function(){if(self.pulseFunc){self.pulseFunc(self)};};
     this.obj.rotation.z = -Math.PI/2;
 }
