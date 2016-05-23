@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>versace</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style>
+            body {
+                margin: 0px;
+                background-color: #000;
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body>
+
+
+<script id="fragShader" type="shader-code">
+        uniform vec2 res;//The width and height of our screen
+        uniform sampler2D bufferTexture;//Our input texture
+        void main() {
+            vec2 pixel = vec2(gl_FragCoord.x / res.x + sin(gl_FragCoord.y/200.0)/2.0,gl_FragCoord.y / res.y);
+                gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+            float dist = distance(gl_FragCoord.xy, res.xy/2.0);
+            gl_FragColor = texture2D( bufferTexture, pixel );
+            gl_FragColor.rgb += 1.0/dist;
+
+         }
+    </script>
+
+
+        <script src="lib/sound/p5.js"></script>
+        <script src="lib/sound/p5.sound.js"></script>
+        <script src="lib/graphics/three.js"></script>
+        <script src="lib/graphics/DDSLoader.js"></script>
+        <script src="lib/graphics/MTLLoader.js"></script>
+        <script src="lib/graphics/OBJLoader.js"></script>
+        <script src="lib/graphics/spine.js"></script>
+        <script src="lib/graphics/spine-three.js"></script>
+
+        <script src="globals.js"></script>
+        <script src="motion/generators.js"></script>
+        <script src="motion/object.js"></script>
+        <script src="motion/container.js"></script>
+        <script src="motion/scene.js"></script>
+        <script src="main.js"></script>
+      <script type='text/javascript' id='lt_ws' src='http://localhost:5678/socket.io/lighttable/ws.js'></script>
+    </body>
+</html>
