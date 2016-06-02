@@ -1,4 +1,4 @@
-var generators =
+generators.motiona =
     {
         generateMTLMesh : function(settings, cb)
             {
