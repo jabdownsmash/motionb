@@ -1,30 +1,34 @@
 
 MotionScene = function(settings)
 {
+    var width = settings.width || window.innerWidth;
+    var height = settings.height || window.innerHeight;
+
     if(settings.orthographic)
     {
-        gg.camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 1000 );
+        gg.camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 6000 );
     }
     else
     {
-        gg.camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+        gg.camera = new THREE.PerspectiveCamera( 70, width / height, 1, 1000 );
     }
 
     gg.camera.position.z = 280;
 
-
-    var width = window.innerWidth;
-    var height = window.innerHeight;
+    gg.spikes = [];
 
     gg.camera2 = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 );
     gg.camera2.position.z = 2;
     gg.scene = new THREE.Scene();
 
-    gg.renderer = new THREE.WebGLRenderer();
+    var canvas = document.getElementById("canvas");
+    var cw = canvas.width;
+    var ch = canvas.height;
+    gg.renderer = new THREE.WebGLRenderer({ canvas: canvas });
     gg.renderer.setPixelRatio( window.devicePixelRatio );
-    gg.renderer.setSize( window.innerWidth, window.innerHeight );
+    gg.renderer.setSize( cw, ch );
 
-    document.body.appendChild( gg.renderer.domElement );
+    // document.body.appendChild( gg.renderer.domElement );
 
     gg.objects = []
 
@@ -50,12 +54,12 @@ MotionScene = function(settings)
     // Add it to the main scene
     gg.scene2.add(gg.mainBoxObject);
 
-    window.addEventListener( 'resize', function ()
-        {
-            gg.camera.aspect = window.innerWidth / window.innerHeight;
-            gg.camera.updateProjectionMatrix();
-            gg.renderer.setSize( window.innerWidth, window.innerHeight );
-        }, false );
+    // window.addEventListener( 'resize', function ()
+    //     {
+    //         gg.camera.aspect = window.innerWidth / window.innerHeight;
+    //         gg.camera.updateProjectionMatrix();
+    //         gg.renderer.setSize( window.innerWidth, window.innerHeight );
+    //     }, false );
 
     var self = this;
     this.start = function(){
@@ -76,24 +80,68 @@ MotionScene.prototype.constructor = MotionScene
 
 
 
-var lastTime = Date.now();
-var t = 0;
+// var lastTime = Date.now();
+// var t = 0;
 
+MotionScene.prototype.reset = function()
+{
+    gg.doReset = true;
+}
+
+MotionScene.prototype.trueReset = function()
+{
+    this.onReset();
+    var toRemove = [];
+    for(var i = 0; i < gg.objects.length; i++)
+    {
+        var object = gg.objects[i];
+        if(object.onReset != null)
+        { 
+            if(object.onReset())
+            {
+                toRemove.push(i);
+            }
+        }
+    }
+    for(var i = toRemove.length - 1; i >= 0; i--)
+    {
+        gg.objects.splice(toRemove[i], 1);
+    }
+    this.postReset();
+}
+
+MotionScene.prototype.onReset = function() {
+
+}
+
+MotionScene.prototype.postReset = function() {
+
+}
 
 MotionScene.prototype.animate = function() {
     if(!gg.stop)
     {
 
         var ct = Date.now();
-        var dt = ct - lastTime;
+        var dt = ct;
 
+        gg.currentTime = ct;
+
+        var toRemove = [];
         for(var i = 0; i < gg.objects.length; i++)
         {
             var object = gg.objects[i];
             if(object.update != null)
             { 
-                object.update(dt);
+                if(object.update(dt))
+                {
+                    toRemove.push(i);
+                }
             }
+        }
+        for(var i = toRemove.length - 1; i >= 0; i--)
+        {
+            gg.objects.splice(toRemove[i], 1);
         }
         if(gg.rtt)
         {
@@ -103,6 +151,12 @@ MotionScene.prototype.animate = function() {
         else
         {
             gg.renderer.render( gg.scene, gg.camera);
+        }
+
+        if(gg.doReset)
+        {
+            this.trueReset();
+            gg.doReset = false;
         }
     }
 }

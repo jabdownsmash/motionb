@@ -83,7 +83,8 @@ var shapePasses =
                 };
             },
     };
-var motionPasses = {
+var motionPasses = {};
+motionPasses = {
 
     everyXDo : function(changeEveryX, callback)
         {
@@ -117,7 +118,7 @@ var motionPasses = {
 
     randomizeVertices : function(randWidth)
         {
-            return applyVertexFilter(function(v,o)
+            return motionPasses.applyVertexFilter(function(v,o)
                 {
                     v.x = o.x + Math.random()*randWidth - randWidth/2;
                     v.y = o.y + Math.random()*randWidth - randWidth/2;
@@ -127,18 +128,18 @@ var motionPasses = {
 
     randomizeVerticesLength : function(randLength)
         {
-            return applyVertexFilter(function(v,o)
+            return motionPasses.applyVertexFilter(function(v,o)
                 {
                     var rand = Math.random()*randLength;
-                    v.x = o.x + o.x*rand;
-                    v.y = o.y + o.y*rand;
-                    v.z = o.z + o.z*rand;
+                    v.x = o.x*rand;
+                    v.y = o.y*rand;
+                    v.z = o.z*rand;
                 });
         },
 
     addRandom : function(randWidth)
         {
-            return applyVertexFilter(function(v,o)
+            return motionPasses.applyVertexFilter(function(v,o)
                 {
                     v.x = v.x + Math.random()*randWidth - randWidth/2;
                     v.y = v.y + Math.random()*randWidth - randWidth/2;
@@ -148,18 +149,18 @@ var motionPasses = {
 
     addRandomLength : function(randLength)
         {
-            return applyVertexFilter(function(v,o)
+            return motionPasses.applyVertexFilter(function(v,o)
                 {
                     var rand = Math.random()*randLength;
-                    v.x = v.x + v.x*rand;
-                    v.y = v.y + v.y*rand;
-                    v.z = v.z + v.z*rand;
+                    v.x = v.x + v.x*rand - randLength/2;
+                    v.y = v.y + v.y*rand - randLength/2;
+                    v.z = v.z + v.z*rand - randLength/2;
                 });
         },
 
     expoPass : function(mult)
         {
-            return applyVertexFilter(function(v,o)
+            return motionPasses.applyVertexFilter(function(v,o)
                 {
                     v.x += (o.x  - v.x)/mult;
                     v.y += (o.y  - v.y)/mult;
@@ -167,21 +168,21 @@ var motionPasses = {
                 });
         },
 
-    springPass : function(speedModifier)
+    springPass : function(speedModifier,multiplier)
         {
-            return applyVertexFilter(function(v,o)
+            return motionPasses.applyVertexFilter(function(v,o)
                 {
                     v.speed.x += (o.x  - v.x)/speedModifier;
                     v.speed.y += (o.y  - v.y)/speedModifier;
                     v.speed.z += (o.z  - v.z)/speedModifier;
 
-                    v.speed.x *= .9;
-                    v.speed.y *= .9;
-                    v.speed.z *= .9;
+                    v.speed.x *= multiplier || .9;
+                    v.speed.y *= multiplier || .9;
+                    v.speed.z *= multiplier || .9;
 
-                    v.x += o.speed.x;
-                    v.y += o.speed.y;
-                    v.z += o.speed.z;
+                    v.x += v.speed.x;
+                    v.y += v.speed.y;
+                    v.z += v.speed.z;
 
                     if(Math.abs(v.x) < Math.abs(o.x))
                     {
